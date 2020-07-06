@@ -1,23 +1,24 @@
 package com.example.myfiles;
 
 import android.content.Context;
-import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
+import android.widget.TextView;
 
-import java.util.ArrayList;
+import com.example.myfiles.model.ImageDetail;
+
+import java.util.List;
 
 public class GalleryAdapter extends BaseAdapter {
-    private Context ctx;
-    private int pos;
-    private LayoutInflater inflater;
-    private ImageView ivGallery;
-    ArrayList<Uri> mArrayUri;
-    public GalleryAdapter(Context ctx, ArrayList<Uri> mArrayUri) {
 
+    private Context ctx;
+
+    private List<ImageDetail> mArrayUri;
+
+    public GalleryAdapter(Context ctx, List<ImageDetail> mArrayUri) {
         this.ctx = ctx;
         this.mArrayUri = mArrayUri;
     }
@@ -34,27 +35,23 @@ public class GalleryAdapter extends BaseAdapter {
 
     @Override
     public long getItemId(int position) {
-        return 0;
+        return position;
     }
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
+        View itemView = LayoutInflater.from(ctx)
+                .inflate(R.layout.gv_item, parent, false);
+        ImageDetail imageDetail = mArrayUri.get(position);
 
-        pos = position;
-        inflater = (LayoutInflater) ctx
-                .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        ImageView ivGallery = (ImageView) itemView.findViewById(R.id.ivGallery);
+        ivGallery.setImageURI(imageDetail.getUri());
 
-        View itemView = inflater.inflate(R.layout.gv_item, parent, false);
-
-        ivGallery = (ImageView) itemView.findViewById(R.id.ivGallery);
-
-        ivGallery.setImageURI(mArrayUri.get(position));
+        TextView tvName = (TextView) itemView.findViewById(R.id.tvName);
+        tvName.setText(imageDetail.getDisplayName());
 
         return itemView;
     }
-
-
-
 
 
 }

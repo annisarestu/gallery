@@ -18,6 +18,9 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.myfiles.model.ImageDetail;
+import com.example.myfiles.model.StaticImages;
+import com.example.myfiles.processor.ClusterProcessor;
 import com.karumi.dexter.Dexter;
 import com.karumi.dexter.MultiplePermissionsReport;
 import com.karumi.dexter.PermissionToken;
@@ -30,6 +33,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
@@ -38,6 +42,9 @@ public class PictureChoose extends AppCompatActivity {
     private ImageView imageview;
     private static final String IMAGE_DIRECTORY = "/demonuts";
     private int GALLERY = 1, CAMERA = 2;
+    private List<Bitmap> similarImages;
+
+    private ClusterProcessor clusterProcessor;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,6 +55,9 @@ public class PictureChoose extends AppCompatActivity {
 
         btnImg = findViewById(R.id.im_cluster);
         imageview = findViewById(R.id.iv);
+
+        similarImages = new ArrayList<>();
+        clusterProcessor = new ClusterProcessor();
 
         btnImg.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -81,10 +91,12 @@ public class PictureChoose extends AppCompatActivity {
     }
 
     public void choosePhotoFromGallary() {
-        Intent galleryIntent = new Intent(Intent.ACTION_PICK,
-                android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+        Intent intent = new Intent();
 
-        startActivityForResult(galleryIntent, GALLERY);
+        intent.setType("image/*");
+        intent.setAction(Intent.ACTION_GET_CONTENT);
+
+        startActivityForResult(intent, GALLERY);
     }
 
     private void takePhotoFromCamera() {
@@ -94,32 +106,50 @@ public class PictureChoose extends AppCompatActivity {
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
-
         super.onActivityResult(requestCode, resultCode, data);
-        if (resultCode == this.RESULT_CANCELED) {
+        if (resultCode == RESULT_CANCELED) {
             return;
         }
+
+        Bitmap bitmap = null;
         if (requestCode == GALLERY) {
             if (data != null) {
                 Uri contentURI = data.getData();
                 try {
-                    Bitmap bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), contentURI);
-                    String path = saveImage(bitmap);
+                    bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), contentURI);
                     Toast.makeText(PictureChoose.this, "Image Saved!", Toast.LENGTH_SHORT).show();
                     imageview.setImageBitmap(bitmap);
-
                 } catch (IOException e) {
                     e.printStackTrace();
                     Toast.makeText(PictureChoose.this, "Failed!", Toast.LENGTH_SHORT).show();
                 }
             }
-
         } else if (requestCode == CAMERA) {
-            Bitmap thumbnail = (Bitmap) data.getExtras().get("data");
-            imageview.setImageBitmap(thumbnail);
-            saveImage(thumbnail);
+            bitmap = (Bitmap) data.getExtras().get("data");
+            imageview.setImageBitmap(bitmap);
+            saveImage(bitmap);
             Toast.makeText(PictureChoose.this, "Image Saved!", Toast.LENGTH_SHORT).show();
         }
+
+        if (bitmap != null) {
+            try {
+                getSimilarImages(bitmap);
+            } catch (Exception e) {
+                Toast.makeText(PictureChoose.this, "Failed to get similar image", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    private void getSimilarImages(Bitmap bitmap) throws IOException {
+        List<ImageDetail> imageDetails = StaticImages.getImageDetails();
+        List<Bitmap> bitmaps = new ArrayList<>();
+
+        for (ImageDetail imageDetail : imageDetails) {
+            bitmaps.add(MediaStore.Images.Media.getBitmap(getContentResolver(),
+                    imageDetail.getUri()));
+        }
+
+        similarImages.addAll(clusterProcessor.processCluster(bitmap, bitmaps));
     }
 
     public String saveImage(Bitmap myBitmap) {
