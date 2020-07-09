@@ -1,19 +1,25 @@
 package com.example.myfiles;
 
 import android.content.ClipData;
+import android.content.ContentResolver;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.BaseColumns;
 import android.provider.MediaStore;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.GridView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 
 import com.example.myfiles.model.ImageDetail;
 import com.example.myfiles.model.StaticImages;
@@ -22,6 +28,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class PictureGallery extends AppCompatActivity {
+
+    private static final String TAG = "tag" ;
 
     private int PICK_IMAGE_MULTIPLE = 1;
 
@@ -43,6 +51,8 @@ public class PictureGallery extends AppCompatActivity {
         btnGallery = findViewById(R.id.btn_choose_image);
         btnNext = findViewById(R.id.btn_next);
         gvGallery = findViewById(R.id.gv);
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
 
         mImages = new ArrayList<>();
         galleryAdapter = new GalleryAdapter(this, mImages);
@@ -76,6 +86,28 @@ public class PictureGallery extends AppCompatActivity {
             }
         });
 
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu,menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        int id = item.getItemId();
+
+        if (id == R.id.detail) {
+            Toast.makeText(getApplicationContext(), "Detail", Toast.LENGTH_SHORT).show();
+        }else if (id == R.id.share){
+            Toast.makeText(getApplicationContext(),"Share", Toast.LENGTH_SHORT).show();
+        }else if (id == R.id.delete){
+            Toast.makeText(getApplicationContext(),"Delete", Toast.LENGTH_SHORT).show();
+        }else if (id == R.id.copy){
+            Toast.makeText(getApplicationContext(),"Copy", Toast.LENGTH_SHORT).show();
+        }
+        return true;
     }
 
     @Override
@@ -132,5 +164,33 @@ public class PictureGallery extends AppCompatActivity {
         cursor.close();
 
         return new ImageDetail(uri, dataPath, displayName);
+    }
+
+    public void deleteImageFromGallery(String captureimageid){
+        Cursor c = null;
+        Uri u = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
+
+        getContentResolver().delete(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, BaseColumns._ID+"=?", new String[] {captureimageid});
+
+        String[] projection = { MediaStore.Images.ImageColumns.SIZE,
+                MediaStore.Images.ImageColumns.DISPLAY_NAME,
+                MediaStore.Images.ImageColumns.DATA, BaseColumns._ID, };
+
+        Log.i("InfoLog", "on activityresult Uri u " + u.toString());
+
+        try {
+            if (u != null) {
+                c = managedQuery(u, projection, null, null, null);
+            }
+            if ((c != null) && (c.moveToLast())) {
+                ContentResolver cr = getContentResolver();
+                int i = cr.delete(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, BaseColumns._ID + "=" + c.getString(3), null);
+                Log.v(TAG, "Number of column deleted : " + i);
+            }
+        } finally {
+            if (c != null) {
+                c.close();
+            }
+        }
     }
 }

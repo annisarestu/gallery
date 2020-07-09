@@ -40,7 +40,7 @@ import java.util.List;
 public class PictureChoose extends AppCompatActivity {
     private Button btnImg;
     private ImageView imageview;
-    private static final String IMAGE_DIRECTORY = "/demonuts";
+    private static final String IMAGE_DIRECTORY = "/cluster";
     private int GALLERY = 1, CAMERA = 2;
     private List<Bitmap> similarImages;
 
@@ -216,8 +216,5 @@ public class PictureChoose extends AppCompatActivity {
                 .onSameThread()
                 .check();
     }
-
-
-
 
 }

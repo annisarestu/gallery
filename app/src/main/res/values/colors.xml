@@ -4,7 +4,7 @@
     <color name="colorPrimaryDark">#00574B</color>
     <color name="colorAccent">#D81B60</color>
     <color name="grey">#848282</color>
-    <color name="lightgrey">#bdbebd</color>
+    <color name="lightgrey">#f1f1f1</color>
     <color name="white">#FFFFFF</color>
     <color name="orange">#FFA500</color>
     <color name="lightorange">#A6FFA500</color>
@@ -12,4 +12,8 @@
     <color name="skyblue">#4BB4E9</color>
     <color name="colorBg">#64344662</color>
     <color name="blue">#0088FF</color>
+
+    <color name="textPrimary">#000000</color>
+    <color name="textSecondary">#ffffff</color>
+    <color name="transparent">#00000000</color>
 </resources>

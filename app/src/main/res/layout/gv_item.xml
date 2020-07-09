@@ -11,7 +11,7 @@
         android:layout_height="130dp"
         android:padding="10dp"
         android:src="@mipmap/ic_launcher_round"
-        android:scaleType="fitXY"/>
+        android:scaleType="centerCrop"/>
 
     <TextView
         android:id="@+id/tvName"
