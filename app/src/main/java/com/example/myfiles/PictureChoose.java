@@ -59,7 +59,7 @@ public class PictureChoose extends AppCompatActivity {
         similarImages = new ArrayList<>();
         clusterProcessor = new ClusterProcessor();
 
-        btnImg.setOnClickListener(new View.OnClickListener() {
+        imageview.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 showPictureDialog();
