@@ -13,6 +13,7 @@ import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.Toast;
 
@@ -38,11 +39,15 @@ import java.util.Calendar;
 import java.util.List;
 
 public class PictureChoose extends AppCompatActivity {
+
     private Button btnImg;
     private ImageView imageview;
+    private GridView gridView;
     private static final String IMAGE_DIRECTORY = "/cluster";
     private int GALLERY = 1, CAMERA = 2;
-    private List<Bitmap> similarImages;
+    private GalleryAdapter galleryAdapter;
+    private Bitmap bitmap;
+    private List<ImageDetail> similarImages;
 
     private ClusterProcessor clusterProcessor;
 
@@ -55,9 +60,14 @@ public class PictureChoose extends AppCompatActivity {
 
         btnImg = findViewById(R.id.im_cluster);
         imageview = findViewById(R.id.iv);
+        gridView = findViewById(R.id.gv);
 
         similarImages = new ArrayList<>();
         clusterProcessor = new ClusterProcessor();
+
+        galleryAdapter = new GalleryAdapter(this, similarImages);
+        gridView.setAdapter(galleryAdapter);
+        gridView.setVerticalSpacing(gridView.getHorizontalSpacing());
 
         btnImg.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -111,7 +121,7 @@ public class PictureChoose extends AppCompatActivity {
             return;
         }
 
-        Bitmap bitmap = null;
+        bitmap = null;
         if (requestCode == GALLERY) {
             if (data != null) {
                 Uri contentURI = data.getData();
@@ -131,25 +141,15 @@ public class PictureChoose extends AppCompatActivity {
             Toast.makeText(PictureChoose.this, "Image Saved!", Toast.LENGTH_SHORT).show();
         }
 
-        if (bitmap != null) {
-            try {
-                getSimilarImages(bitmap);
-            } catch (Exception e) {
-                Toast.makeText(PictureChoose.this, "Failed to get similar image", Toast.LENGTH_SHORT).show();
-            }
-        }
+        searchSimilarImages();
     }
 
-    private void getSimilarImages(Bitmap bitmap) throws IOException {
-        List<ImageDetail> imageDetails = StaticImages.getImageDetails();
-        List<Bitmap> bitmaps = new ArrayList<>();
-
-        for (ImageDetail imageDetail : imageDetails) {
-            bitmaps.add(MediaStore.Images.Media.getBitmap(getContentResolver(),
-                    imageDetail.getUri()));
+    private void searchSimilarImages() {
+        if (bitmap != null) {
+            List<ImageDetail> imageDetails = StaticImages.getImageDetails();
+            similarImages.addAll(clusterProcessor.processCluster(bitmap, imageDetails));
+            galleryAdapter.notifyDataSetChanged();
         }
-
-        similarImages.addAll(clusterProcessor.processCluster(bitmap, bitmaps));
     }
 
     public String saveImage(Bitmap myBitmap) {

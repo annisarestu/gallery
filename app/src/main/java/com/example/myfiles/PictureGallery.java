@@ -4,7 +4,9 @@ import android.content.ClipData;
 import android.content.ContentResolver;
 import android.content.Intent;
 import android.database.Cursor;
+import android.graphics.Bitmap;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.BaseColumns;
 import android.provider.MediaStore;
@@ -70,7 +72,9 @@ public class PictureGallery extends AppCompatActivity {
                 Intent intent = new Intent();
                 intent.setType("image/*");
                 intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
-                intent.setAction(Intent.ACTION_GET_CONTENT);
+                intent.setAction(Intent.ACTION_OPEN_DOCUMENT);
+                intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                intent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
                 startActivityForResult(Intent.createChooser(intent, "Select Picture"), PICK_IMAGE_MULTIPLE);
             }
         });
@@ -138,10 +142,14 @@ public class PictureGallery extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
     }
 
-    private void saveImageDetail(Uri uri) {
+    private void saveImageDetail(Uri uri) throws Exception {
         Cursor cursor = queryImage(uri);
 
         if (cursor != null) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                getContentResolver().takePersistableUriPermission(uri,
+                        Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+            }
             mImages.add(getImageDetail(cursor, uri));
         }
     }
@@ -153,17 +161,18 @@ public class PictureGallery extends AppCompatActivity {
                 null, null);
     }
 
-    private ImageDetail getImageDetail(Cursor cursor, Uri uri) {
+    private ImageDetail getImageDetail(Cursor cursor, Uri uri) throws Exception {
         cursor.moveToFirst();
 
         String dataPath = cursor.getString(
                 cursor.getColumnIndex(MediaStore.Images.Media.DATA));
         String displayName = cursor.getString(
                 cursor.getColumnIndex(MediaStore.Images.Media.DISPLAY_NAME));
+        Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), uri);
 
         cursor.close();
 
-        return new ImageDetail(uri, dataPath, displayName);
+        return new ImageDetail(bitmap, uri, dataPath, displayName);
     }
 
     public void deleteImageFromGallery(String captureimageid){

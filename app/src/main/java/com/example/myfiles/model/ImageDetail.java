@@ -1,18 +1,34 @@
 package com.example.myfiles.model;
 
+import android.graphics.Bitmap;
 import android.net.Uri;
 
 public class ImageDetail {
+
+    private Bitmap bitmap;
 
     private Uri uri;
 
     private String dataPath;
     private String displayName;
 
-    public ImageDetail(Uri uri, String dataPath, String displayName) {
+    public ImageDetail(Bitmap bitmap) {
+        this(bitmap, null, null, null);
+    }
+
+    public ImageDetail(Bitmap bitmap, Uri uri, String dataPath, String displayName) {
+        this.bitmap = bitmap;
         this.uri = uri;
         this.dataPath = dataPath;
         this.displayName = displayName;
+    }
+
+    public Bitmap getBitmap() {
+        return bitmap;
+    }
+
+    public void setBitmap(Bitmap bitmap) {
+        this.bitmap = bitmap;
     }
 
     public Uri getUri() {
