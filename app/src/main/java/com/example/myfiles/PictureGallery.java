@@ -1,14 +1,11 @@
 package com.example.myfiles;
 
 import android.content.ClipData;
-import android.content.ContentResolver;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
-import android.provider.BaseColumns;
 import android.provider.MediaStore;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -28,8 +25,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class PictureGallery extends AppCompatActivity {
-
-    private static final String TAG = "tag" ;
 
     private int PICK_IMAGE_MULTIPLE = 1;
 
@@ -164,33 +159,5 @@ public class PictureGallery extends AppCompatActivity {
         cursor.close();
 
         return new ImageDetail(uri, dataPath, displayName);
-    }
-
-    public void deleteImageFromGallery(String captureimageid){
-        Cursor c = null;
-        Uri u = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
-
-        getContentResolver().delete(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, BaseColumns._ID+"=?", new String[] {captureimageid});
-
-        String[] projection = { MediaStore.Images.ImageColumns.SIZE,
-                MediaStore.Images.ImageColumns.DISPLAY_NAME,
-                MediaStore.Images.ImageColumns.DATA, BaseColumns._ID, };
-
-        Log.i("InfoLog", "on activityresult Uri u " + u.toString());
-
-        try {
-            if (u != null) {
-                c = managedQuery(u, projection, null, null, null);
-            }
-            if ((c != null) && (c.moveToLast())) {
-                ContentResolver cr = getContentResolver();
-                int i = cr.delete(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, BaseColumns._ID + "=" + c.getString(3), null);
-                Log.v(TAG, "Number of column deleted : " + i);
-            }
-        } finally {
-            if (c != null) {
-                c.close();
-            }
-        }
     }
 }
