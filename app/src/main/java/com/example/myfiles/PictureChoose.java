@@ -65,8 +65,6 @@ public class PictureChoose extends AppCompatActivity {
         similarImages = new ArrayList<>();
         clusterProcessor = new ClusterProcessor();
 
-        imageview.setOnClickListener(new View.OnClickListener() {
-
         galleryAdapter = new GalleryAdapter(this, similarImages);
         gridView.setAdapter(galleryAdapter);
         gridView.setVerticalSpacing(gridView.getHorizontalSpacing());
