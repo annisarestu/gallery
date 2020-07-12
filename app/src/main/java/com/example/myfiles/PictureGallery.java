@@ -31,7 +31,8 @@ import java.util.List;
 
 public class PictureGallery extends AppCompatActivity {
 
-    private static final String TAG = "tag" ;
+    private static final String TAG = "PictureGallery" ;
+    private static final String LAST_MODIFIED_COLUMN_NAME = "last_modified";
 
     private int PICK_IMAGE_MULTIPLE = 1;
 
@@ -155,9 +156,12 @@ public class PictureGallery extends AppCompatActivity {
     }
 
     private Cursor queryImage(Uri mImageUri) {
-        String[] filePathColumn = {MediaStore.Images.Media.DATA,
-                MediaStore.Images.Media.DISPLAY_NAME};
-        return getContentResolver().query(mImageUri, filePathColumn, null,
+        String[] projections = new String[] {
+                MediaStore.Images.Media.DATA, MediaStore.Images.Media.DISPLAY_NAME,
+                MediaStore.Images.Media.MIME_TYPE, LAST_MODIFIED_COLUMN_NAME,
+                MediaStore.Images.Media.SIZE
+        };
+        return getContentResolver().query(mImageUri, projections, null,
                 null, null);
     }
 
@@ -168,11 +172,15 @@ public class PictureGallery extends AppCompatActivity {
                 cursor.getColumnIndex(MediaStore.Images.Media.DATA));
         String displayName = cursor.getString(
                 cursor.getColumnIndex(MediaStore.Images.Media.DISPLAY_NAME));
+        String mimeType = cursor.getString(
+                cursor.getColumnIndex(MediaStore.Images.Media.MIME_TYPE));
+        Long dateModified = cursor.getLong(cursor.getColumnIndex(LAST_MODIFIED_COLUMN_NAME));
+        Long size = cursor.getLong(cursor.getColumnIndex(MediaStore.Images.Media.SIZE));
         Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), uri);
 
         cursor.close();
 
-        return new ImageDetail(bitmap, uri, dataPath, displayName);
+        return new ImageDetail(bitmap, uri, dataPath, displayName, mimeType, dateModified, size);
     }
 
     public void deleteImageFromGallery(String captureimageid){
