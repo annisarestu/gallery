@@ -10,17 +10,28 @@ public class ImageDetail {
     private Uri uri;
 
     private String dataPath;
+
     private String displayName;
 
+    private String mimeType;
+
+    private Long dateModified;
+
+    private Long size;
+
     public ImageDetail(Bitmap bitmap) {
-        this(bitmap, null, null, null);
+        this(bitmap, null, null, null, null, null, null);
     }
 
-    public ImageDetail(Bitmap bitmap, Uri uri, String dataPath, String displayName) {
+    public ImageDetail(Bitmap bitmap, Uri uri, String dataPath, String displayName, String mimeType,
+                       Long dateModified, Long size) {
         this.bitmap = bitmap;
         this.uri = uri;
         this.dataPath = dataPath;
         this.displayName = displayName;
+        this.mimeType = mimeType;
+        this.dateModified = dateModified;
+        this.size = size;
     }
 
     public Bitmap getBitmap() {
@@ -53,5 +64,29 @@ public class ImageDetail {
 
     public void setDisplayName(String displayName) {
         this.displayName = displayName;
+    }
+
+    public String getMimeType() {
+        return mimeType;
+    }
+
+    public void setMimeType(String mimeType) {
+        this.mimeType = mimeType;
+    }
+
+    public Long getDateModified() {
+        return dateModified;
+    }
+
+    public void setDateModified(Long dateModified) {
+        this.dateModified = dateModified;
+    }
+
+    public Long getSize() {
+        return size;
+    }
+
+    public void setSize(Long size) {
+        this.size = size;
     }
 }

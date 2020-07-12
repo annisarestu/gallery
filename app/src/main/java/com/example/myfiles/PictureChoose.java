@@ -4,6 +4,7 @@ import android.Manifest;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.media.MediaScannerConnection;
 import android.net.Uri;
@@ -22,6 +23,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.myfiles.model.ImageDetail;
 import com.example.myfiles.model.StaticImages;
 import com.example.myfiles.processor.ClusterProcessor;
+import com.example.myfiles.processor.strategy.ColorClusterStrategy;
+import com.example.myfiles.processor.strategy.DateClusterStrategy;
 import com.karumi.dexter.Dexter;
 import com.karumi.dexter.MultiplePermissionsReport;
 import com.karumi.dexter.PermissionToken;
@@ -33,12 +36,13 @@ import com.karumi.dexter.listener.multi.MultiplePermissionsListener;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
 public class PictureChoose extends AppCompatActivity {
+
+    private static final String LAST_MODIFIED_COLUMN_NAME = "last_modified";
 
     private Button btnImg;
     private ImageView imageview;
@@ -46,7 +50,7 @@ public class PictureChoose extends AppCompatActivity {
     private static final String IMAGE_DIRECTORY = "/cluster";
     private int GALLERY = 1, CAMERA = 2;
     private GalleryAdapter galleryAdapter;
-    private Bitmap bitmap;
+    private ImageDetail imageDetail;
     private List<ImageDetail> similarImages;
 
     private ClusterProcessor clusterProcessor;
@@ -122,64 +126,92 @@ public class PictureChoose extends AppCompatActivity {
             return;
         }
 
-        bitmap = null;
         if (requestCode == GALLERY) {
             if (data != null) {
                 Uri contentURI = data.getData();
                 try {
-                    bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), contentURI);
+                    imageDetail = getImageDetail(queryImage(contentURI), contentURI);
                     Toast.makeText(PictureChoose.this, "Image Saved!", Toast.LENGTH_SHORT).show();
-                    imageview.setImageBitmap(bitmap);
-                } catch (IOException e) {
-                    e.printStackTrace();
+                    imageview.setImageBitmap(imageDetail.getBitmap());
+                } catch (Exception e) {
                     Toast.makeText(PictureChoose.this, "Failed!", Toast.LENGTH_SHORT).show();
                 }
             }
         } else if (requestCode == CAMERA) {
-            bitmap = (Bitmap) data.getExtras().get("data");
-            imageview.setImageBitmap(bitmap);
-            saveImage(bitmap);
-            Toast.makeText(PictureChoose.this, "Image Saved!", Toast.LENGTH_SHORT).show();
+            Bitmap bitmap = (Bitmap) data.getExtras().get("data");
+            try {
+                Uri contentUri = saveImage(bitmap);
+                imageDetail = getImageDetail(queryImage(contentUri), contentUri);
+                imageview.setImageBitmap(bitmap);
+                Toast.makeText(PictureChoose.this, "Image Saved!", Toast.LENGTH_SHORT).show();
+            } catch (Exception e) {
+                Toast.makeText(PictureChoose.this, "Failed!", Toast.LENGTH_SHORT).show();
+            }
         }
 
         searchSimilarImages();
     }
 
+    private Cursor queryImage(Uri mImageUri) {
+        String[] projections = new String[] {
+                MediaStore.Images.Media.DATA, MediaStore.Images.Media.DISPLAY_NAME,
+                MediaStore.Images.Media.MIME_TYPE, LAST_MODIFIED_COLUMN_NAME,
+                MediaStore.Images.Media.SIZE
+        };
+        return getContentResolver().query(mImageUri, projections, null,
+                null, null);
+    }
+
+    private ImageDetail getImageDetail(Cursor cursor, Uri uri) throws Exception {
+        cursor.moveToFirst();
+
+        String dataPath = cursor.getString(
+                cursor.getColumnIndex(MediaStore.Images.Media.DATA));
+        String displayName = cursor.getString(
+                cursor.getColumnIndex(MediaStore.Images.Media.DISPLAY_NAME));
+        String mimeType = cursor.getString(
+                cursor.getColumnIndex(MediaStore.Images.Media.MIME_TYPE));
+        Long dateModified = cursor.getLong(cursor.getColumnIndex(LAST_MODIFIED_COLUMN_NAME));
+        Long size = cursor.getLong(cursor.getColumnIndex(MediaStore.Images.Media.SIZE));
+        Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), uri);
+
+        cursor.close();
+
+        return new ImageDetail(bitmap, uri, dataPath, displayName, mimeType, dateModified, size);
+    }
+
     private void searchSimilarImages() {
-        if (bitmap != null) {
-            List<ImageDetail> imageDetails = StaticImages.getImageDetails();
-            similarImages.addAll(clusterProcessor.processCluster(bitmap, imageDetails));
+        if (imageDetail != null) {
+            List<ImageDetail> imageDetails = new ArrayList<>(StaticImages.getImageDetails());
+            imageDetails.add(0, imageDetail);
+            similarImages.addAll(clusterProcessor.processCluster(
+                    imageDetails, new ColorClusterStrategy())); // Change to new DateClusterStrategy() if want to cluster by date
+            similarImages.remove(0);
             galleryAdapter.notifyDataSetChanged();
         }
     }
 
-    public String saveImage(Bitmap myBitmap) {
+    public Uri saveImage(Bitmap myBitmap) throws Exception {
         ByteArrayOutputStream bytes = new ByteArrayOutputStream();
         myBitmap.compress(Bitmap.CompressFormat.JPEG, 90, bytes);
         File wallpaperDirectory = new File(
                 Environment.getExternalStorageDirectory() + IMAGE_DIRECTORY);
-        // have the object build the directory structure, if needed.
+
         if (!wallpaperDirectory.exists()) {
             wallpaperDirectory.mkdirs();
         }
 
-        try {
-            File f = new File(wallpaperDirectory, Calendar.getInstance()
-                    .getTimeInMillis() + ".jpg");
-            f.createNewFile();
-            FileOutputStream fo = new FileOutputStream(f);
-            fo.write(bytes.toByteArray());
-            MediaScannerConnection.scanFile(this,
-                    new String[]{f.getPath()},
-                    new String[]{"image/jpeg"}, null);
-            fo.close();
-            Log.d("TAG", "File Saved::--->" + f.getAbsolutePath());
+        File f = new File(wallpaperDirectory, Calendar.getInstance().getTimeInMillis() + ".jpg");
+        f.createNewFile();
+        FileOutputStream fo = new FileOutputStream(f);
+        fo.write(bytes.toByteArray());
+        MediaScannerConnection.scanFile(this,
+                new String[]{f.getPath()},
+                new String[]{"image/jpeg"}, null);
+        fo.close();
+        Log.d("TAG", "File Saved::--->" + f.getAbsolutePath());
 
-            return f.getAbsolutePath();
-        } catch (IOException e1) {
-            e1.printStackTrace();
-        }
-        return "";
+        return Uri.fromFile(f);
     }
 
     private void  requestMultiplePermissions(){
