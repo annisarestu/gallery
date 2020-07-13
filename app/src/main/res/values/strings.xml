@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">MyFiles</string>
+    <string-array name="choice_items">
+        <item>Cluster by color</item>
+        <item>Cluster by date</item>
+    </string-array>
 </resources>

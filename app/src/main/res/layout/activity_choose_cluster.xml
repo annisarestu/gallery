@@ -34,16 +34,23 @@
             android:layout_gravity="center"
             android:layout_marginTop="20dp"
             android:scaleType="centerCrop"
-            android:src="@mipmap/ic_launcher" />
+            android:src="@drawable/logo_klik" />
+        <TextView
+            android:id="@+id/tvCluster"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="10dp"
+            android:text="Selected Choose"
+            android:layout_gravity="center"/>
 
         <Button
             android:id="@+id/im_cluster"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
+            android:layout_marginBottom="20dp"
             android:background="@drawable/round_button"
-            android:text="choose image"
-            />
+            android:text="cluster by"
+            android:onClick="showDialogListView"/>
 
         <GridView
             android:id="@+id/gv"

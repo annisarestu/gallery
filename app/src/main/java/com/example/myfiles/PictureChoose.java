@@ -16,15 +16,16 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.GridView;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.DialogFragment;
 
 import com.example.myfiles.model.ImageDetail;
 import com.example.myfiles.model.StaticImages;
 import com.example.myfiles.processor.ClusterProcessor;
 import com.example.myfiles.processor.strategy.ColorClusterStrategy;
-import com.example.myfiles.processor.strategy.DateClusterStrategy;
 import com.karumi.dexter.Dexter;
 import com.karumi.dexter.MultiplePermissionsReport;
 import com.karumi.dexter.PermissionToken;
@@ -40,10 +41,11 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
-public class PictureChoose extends AppCompatActivity {
+public class PictureChoose extends AppCompatActivity implements SingleChoiceDialogFragment.SingleChoiceListener{
 
     private static final String LAST_MODIFIED_COLUMN_NAME = "last_modified";
 
+    private TextView tvCluster;
     private Button btnImg;
     private ImageView imageview;
     private GridView gridView;
@@ -62,6 +64,7 @@ public class PictureChoose extends AppCompatActivity {
 
         requestMultiplePermissions();
 
+        tvCluster = findViewById(R.id.tvCluster);
         btnImg = findViewById(R.id.im_cluster);
         imageview = findViewById(R.id.iv);
         gridView = findViewById(R.id.gv);
@@ -73,11 +76,19 @@ public class PictureChoose extends AppCompatActivity {
         gridView.setAdapter(galleryAdapter);
         gridView.setVerticalSpacing(gridView.getHorizontalSpacing());
 
-        btnImg.setOnClickListener(new View.OnClickListener() {
-
+        imageview.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 showPictureDialog();
+            }
+        });
+
+        btnImg.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                DialogFragment singleChoiceDialog=new SingleChoiceDialogFragment();
+                singleChoiceDialog.setCancelable(false);
+                singleChoiceDialog.show(getSupportFragmentManager(),"Single Choice Dialog");
             }
         });
     }
@@ -250,4 +261,13 @@ public class PictureChoose extends AppCompatActivity {
                 .check();
     }
 
+    @Override
+    public void onPositiveButtonClicked(String[] list, int position) {
+        tvCluster.setText("Selected Item : " + list[position]);
+    }
+
+    @Override
+    public void onNegativeButtonClicked() {
+        tvCluster.setText("Cancel");
+    }
 }
