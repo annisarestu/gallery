@@ -76,6 +76,7 @@ public class PictureChoose extends AppCompatActivity implements SingleChoiceDial
         gridView.setAdapter(galleryAdapter);
         gridView.setVerticalSpacing(gridView.getHorizontalSpacing());
 
+
         imageview.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -91,6 +92,7 @@ public class PictureChoose extends AppCompatActivity implements SingleChoiceDial
                 singleChoiceDialog.show(getSupportFragmentManager(),"Single Choice Dialog");
             }
         });
+
     }
 
     private void showPictureDialog(){

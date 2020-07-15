@@ -9,11 +9,13 @@ import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.GridView;
+import android.widget.ShareActionProvider;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -42,6 +44,9 @@ public class PictureGallery extends AppCompatActivity {
     private GridView gvGallery;
 
     private GalleryAdapter galleryAdapter;
+
+    private ShareActionProvider shareActionProvider;
+    private Uri imageUri1, imageUri2;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -92,25 +97,36 @@ public class PictureGallery extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu,menu);
+        MenuInflater menuInflater = getMenuInflater();
+        menuInflater.inflate(R.menu.menu,menu);
+
+        MenuItem item = menu.findItem(R.id.share);
+
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        int id = item.getItemId();
+        switch (item.getItemId()){
 
-        if (id == R.id.detail) {
-            Toast.makeText(getApplicationContext(), "Detail", Toast.LENGTH_SHORT).show();
-        }else if (id == R.id.share){
-            Toast.makeText(getApplicationContext(),"Share", Toast.LENGTH_SHORT).show();
-        }else if (id == R.id.delete){
-            Toast.makeText(getApplicationContext(),"Delete", Toast.LENGTH_SHORT).show();
-        }else if (id == R.id.copy){
-            Toast.makeText(getApplicationContext(),"Copy", Toast.LENGTH_SHORT).show();
+            case R.id.share:
+                ArrayList<Uri> imageUris = new ArrayList<Uri>();
+                imageUris.add(imageUri1); // Add your image URIs here
+                imageUris.add(imageUri2);
+
+                Intent shareIntent = new Intent();
+                shareIntent.setAction(Intent.ACTION_SEND_MULTIPLE);
+                shareIntent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, imageUris);
+                shareIntent.setType("image/*");
+                startActivity(Intent.createChooser(shareIntent, "Share images to.."));
+
+            case R.id.delete:
+               
+                break;
         }
         return true;
     }
+
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
