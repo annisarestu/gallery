@@ -121,7 +121,7 @@ public class PictureGallery extends AppCompatActivity {
                 startActivity(Intent.createChooser(shareIntent, "Share images to.."));
 
             case R.id.delete:
-               
+
                 break;
         }
         return true;
