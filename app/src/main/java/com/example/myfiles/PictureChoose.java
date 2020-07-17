@@ -56,6 +56,7 @@ public class PictureChoose extends AppCompatActivity implements SingleChoiceDial
     private GalleryAdapter galleryAdapter;
     private ImageDetail imageDetail;
     private List<ImageDetail> similarImages;
+    private int selectedAlgorithm = 0;
 
     private ClusterProcessor clusterProcessor;
 
@@ -78,7 +79,6 @@ public class PictureChoose extends AppCompatActivity implements SingleChoiceDial
         gridView.setAdapter(galleryAdapter);
         gridView.setVerticalSpacing(gridView.getHorizontalSpacing());
 
-
         imageview.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -89,7 +89,7 @@ public class PictureChoose extends AppCompatActivity implements SingleChoiceDial
         btnImg.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                DialogFragment singleChoiceDialog=new SingleChoiceDialogFragment();
+                DialogFragment singleChoiceDialog = new SingleChoiceDialogFragment(selectedAlgorithm);
                 singleChoiceDialog.setCancelable(false);
                 singleChoiceDialog.show(getSupportFragmentManager(),"Single Choice Dialog");
             }
@@ -163,6 +163,8 @@ public class PictureChoose extends AppCompatActivity implements SingleChoiceDial
                 Toast.makeText(PictureChoose.this, "Failed!", Toast.LENGTH_SHORT).show();
             }
         }
+
+        similarImages.clear();
     }
 
     private Cursor queryImage(Uri mImageUri) {
@@ -269,6 +271,7 @@ public class PictureChoose extends AppCompatActivity implements SingleChoiceDial
     public void onPositiveButtonClicked(String[] list, int position) {
         String selected = "Selected Item : " + list[position];
         tvCluster.setText(selected);
+        selectedAlgorithm = position;
 
         switch (position) {
             case 0:
