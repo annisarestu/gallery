@@ -12,6 +12,15 @@ import ALI.ImageLib;
 
 public class ColorClusterStrategy implements ClusterStrategy {
 
+    private static ColorClusterStrategy INSTANCE = null;
+
+    public static ColorClusterStrategy getInstance() {
+        if (INSTANCE == null) {
+            INSTANCE = new ColorClusterStrategy();
+        }
+        return INSTANCE;
+    }
+
     @Override
     public int[] getClusters(List<ImageDetail> imageDetails) {
         ClusteringLib clusteringLib = new ClusteringLib();

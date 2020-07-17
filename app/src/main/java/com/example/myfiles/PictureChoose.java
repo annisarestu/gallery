@@ -25,7 +25,9 @@ import androidx.fragment.app.DialogFragment;
 import com.example.myfiles.model.ImageDetail;
 import com.example.myfiles.model.StaticImages;
 import com.example.myfiles.processor.ClusterProcessor;
+import com.example.myfiles.processor.strategy.ClusterStrategy;
 import com.example.myfiles.processor.strategy.ColorClusterStrategy;
+import com.example.myfiles.processor.strategy.DateClusterStrategy;
 import com.karumi.dexter.Dexter;
 import com.karumi.dexter.MultiplePermissionsReport;
 import com.karumi.dexter.PermissionToken;
@@ -54,6 +56,7 @@ public class PictureChoose extends AppCompatActivity implements SingleChoiceDial
     private GalleryAdapter galleryAdapter;
     private ImageDetail imageDetail;
     private List<ImageDetail> similarImages;
+    private int selectedAlgorithm = 0;
 
     private ClusterProcessor clusterProcessor;
 
@@ -76,7 +79,6 @@ public class PictureChoose extends AppCompatActivity implements SingleChoiceDial
         gridView.setAdapter(galleryAdapter);
         gridView.setVerticalSpacing(gridView.getHorizontalSpacing());
 
-
         imageview.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -87,7 +89,7 @@ public class PictureChoose extends AppCompatActivity implements SingleChoiceDial
         btnImg.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                DialogFragment singleChoiceDialog=new SingleChoiceDialogFragment();
+                DialogFragment singleChoiceDialog = new SingleChoiceDialogFragment(selectedAlgorithm);
                 singleChoiceDialog.setCancelable(false);
                 singleChoiceDialog.show(getSupportFragmentManager(),"Single Choice Dialog");
             }
@@ -162,7 +164,7 @@ public class PictureChoose extends AppCompatActivity implements SingleChoiceDial
             }
         }
 
-        searchSimilarImages();
+        similarImages.clear();
     }
 
     private Cursor queryImage(Uri mImageUri) {
@@ -193,14 +195,16 @@ public class PictureChoose extends AppCompatActivity implements SingleChoiceDial
         return new ImageDetail(bitmap, uri, dataPath, displayName, mimeType, dateModified, size);
     }
 
-    private void searchSimilarImages() {
+    private void searchSimilarImages(ClusterStrategy clusterStrategy) {
         if (imageDetail != null) {
             List<ImageDetail> imageDetails = new ArrayList<>(StaticImages.getImageDetails());
             imageDetails.add(0, imageDetail);
-            similarImages.addAll(clusterProcessor.processCluster(
-                    imageDetails, new ColorClusterStrategy())); // Change to new DateClusterStrategy() if want to cluster by date
+            similarImages.clear();
+            similarImages.addAll(clusterProcessor.processCluster(imageDetails, clusterStrategy));
             similarImages.remove(0);
             galleryAdapter.notifyDataSetChanged();
+        } else {
+            Toast.makeText(this, "You haven't selected any image...", Toast.LENGTH_LONG).show();
         }
     }
 
@@ -265,7 +269,21 @@ public class PictureChoose extends AppCompatActivity implements SingleChoiceDial
 
     @Override
     public void onPositiveButtonClicked(String[] list, int position) {
-        tvCluster.setText("Selected Item : " + list[position]);
+        String selected = "Selected Item : " + list[position];
+        tvCluster.setText(selected);
+        selectedAlgorithm = position;
+
+        switch (position) {
+            case 0:
+                searchSimilarImages(ColorClusterStrategy.getInstance());
+                break;
+            case 1:
+                searchSimilarImages(DateClusterStrategy.getInstance());
+                break;
+            default:
+                Toast.makeText(this, "Selected algorithm not found...", Toast.LENGTH_LONG).show();
+                similarImages.clear();
+        }
     }
 
     @Override

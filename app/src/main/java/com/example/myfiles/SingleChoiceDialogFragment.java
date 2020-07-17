@@ -12,22 +12,28 @@ import androidx.fragment.app.DialogFragment;
 
 public class SingleChoiceDialogFragment extends DialogFragment {
 
-    int position=0;
+    private int position;
 
-    public interface SingleChoiceListener{
+    public interface SingleChoiceListener {
+
         void onPositiveButtonClicked(String[] list, int position);
+
         void onNegativeButtonClicked();
     }
 
     SingleChoiceListener mListener;
 
+    public SingleChoiceDialogFragment(int position) {
+        this.position = position;
+    }
+
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        try{
+        try {
             mListener = (SingleChoiceListener) context;
-        }catch (Exception e ){
-            throw new ClassCastException(getActivity().toString()+"SingleChoiceListener must implemented");
+        } catch (Exception e) {
+            throw new ClassCastException(getActivity().toString() + "SingleChoiceListener must implemented");
         }
     }
 
@@ -41,18 +47,21 @@ public class SingleChoiceDialogFragment extends DialogFragment {
 
         builder.setTitle("Select your Choice")
                 .setSingleChoiceItems(list, position, new DialogInterface.OnClickListener() {
+
                     @Override
                     public void onClick(DialogInterface dialog, int i) {
                         position = i;
                     }
                 })
                 .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        mListener.onPositiveButtonClicked(list,position);
+                        mListener.onPositiveButtonClicked(list, position);
                     }
                 })
                 .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         mListener.onNegativeButtonClicked();
