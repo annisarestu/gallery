@@ -12,6 +12,15 @@ public class DateClusterStrategy implements ClusterStrategy {
 
     private static final DateFormat DATE_FORMAT = new SimpleDateFormat("dd/MM/yyyy");
 
+    private static DateClusterStrategy INSTANCE = null;
+
+    public static DateClusterStrategy getInstance() {
+        if (INSTANCE == null) {
+            INSTANCE = new DateClusterStrategy();
+        }
+        return INSTANCE;
+    }
+
     @Override
     public int[] getClusters(List<ImageDetail> imageDetails) {
         List<String> dates = new ArrayList<>();
