@@ -12,6 +12,9 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.GridView;
@@ -19,7 +22,9 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.DialogFragment;
 
 import com.example.myfiles.model.ImageDetail;
@@ -57,6 +62,7 @@ public class PictureChoose extends AppCompatActivity implements SingleChoiceDial
     private ImageDetail imageDetail;
     private List<ImageDetail> similarImages;
     private int selectedAlgorithm = 0;
+    private Uri imageUri1, imageUri2;
 
     private ClusterProcessor clusterProcessor;
 
@@ -71,6 +77,8 @@ public class PictureChoose extends AppCompatActivity implements SingleChoiceDial
         btnImg = findViewById(R.id.im_cluster);
         imageview = findViewById(R.id.iv);
         gridView = findViewById(R.id.gv);
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
 
         similarImages = new ArrayList<>();
         clusterProcessor = new ClusterProcessor();
@@ -289,5 +297,42 @@ public class PictureChoose extends AppCompatActivity implements SingleChoiceDial
     @Override
     public void onNegativeButtonClicked() {
         tvCluster.setText("Cancel");
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater menuInflater = getMenuInflater();
+        menuInflater.inflate(R.menu.menu,menu);
+
+        MenuItem item = menu.findItem(R.id.share);
+
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        switch (item.getItemId()){
+
+            case R.id.share:
+                ArrayList<Uri> mImages = new ArrayList<Uri>();
+                mImages.add(imageUri1); // Add your image URIs here
+                mImages.add(imageUri2);
+
+                Intent shareIntent = new Intent();
+                shareIntent.setAction(Intent.ACTION_SEND_MULTIPLE);
+                shareIntent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, mImages);
+                shareIntent.setType("image/*");
+                startActivity(Intent.createChooser(shareIntent, "Share images to.."));
+
+
+
+
+
+            case R.id.delete:
+
+
+                break;
+        }
+        return true;
     }
 }

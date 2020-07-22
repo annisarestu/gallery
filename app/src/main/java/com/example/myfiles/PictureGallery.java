@@ -1,6 +1,8 @@
 package com.example.myfiles;
 
 import android.content.ClipData;
+import android.content.ContentResolver;
+import android.content.ContentUris;
 import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
@@ -8,6 +10,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -25,6 +28,7 @@ import androidx.appcompat.widget.Toolbar;
 import com.example.myfiles.model.ImageDetail;
 import com.example.myfiles.model.StaticImages;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -46,6 +50,7 @@ public class PictureGallery extends AppCompatActivity {
     private GalleryAdapter galleryAdapter;
 
     private ShareActionProvider shareActionProvider;
+
     private Uri imageUri1, imageUri2;
 
     @Override
@@ -105,26 +110,84 @@ public class PictureGallery extends AppCompatActivity {
         return true;
     }
 
+    private void initViews() {
+        gvGallery = (GridView) findViewById(R.id.gv);
+
+    }
+
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         switch (item.getItemId()){
 
             case R.id.share:
-                ArrayList<Uri> imageUris = new ArrayList<Uri>();
-                imageUris.add(imageUri1); // Add your image URIs here
-                imageUris.add(imageUri2);
+//                ArrayList<Uri> mImages = new ArrayList<Uri>();
+//                mImages.add(imageUri1); // Add your image URIs here
+//                mImages.add(imageUri2);
+                Log.v("selectedsize", galleryAdapter.selectedImages.size()+"");
+                if (galleryAdapter.selectedImages.size() != 0){
 
-                Intent shareIntent = new Intent();
-                shareIntent.setAction(Intent.ACTION_SEND_MULTIPLE);
-                shareIntent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, imageUris);
-                shareIntent.setType("image/*");
-                startActivity(Intent.createChooser(shareIntent, "Share images to.."));
+                    Intent shareIntent = new Intent();
+                    shareIntent.setAction(Intent.ACTION_SEND_MULTIPLE);
+                    shareIntent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, galleryAdapter.selectedImages);
+                    shareIntent.setType("image/*");
+                    startActivity(Intent.createChooser(shareIntent, "Share images to.."));
+                } else{
+                    Toast.makeText(this, "Pilih Gambar dulu!", Toast.LENGTH_SHORT).show();
+                }
 
+                break;
             case R.id.delete:
+                Log.v("selectedsize", galleryAdapter.selectedImages.size()+"");
+
+                if (galleryAdapter.selectedImages.size() != 0){
+                    if (deleteImages(galleryAdapter.selectedImages) > 0){
+                        galleryAdapter.notifyDataSetChanged();
+                        Toast.makeText(this, "Gambar berhasil dihapus", Toast.LENGTH_SHORT).show();
+
+                    } else {
+                        Toast.makeText(this, "Gambar gagal dihapus", Toast.LENGTH_SHORT).show();
+                    }
+                }else{
+                    Toast.makeText(this, "Pilih Gambar dulu!", Toast.LENGTH_SHORT).show();
+                }
+
 
                 break;
         }
         return true;
+    }
+
+
+    private int deleteImages(ArrayList<Uri> selectedImages){
+        int deleted = 0;
+        for (Uri uri: selectedImages){
+            File file = new File(uri.getPath());
+            String[] projection = {MediaStore.Images.Media._ID};
+
+            // Match on the file path
+            String selection = MediaStore.Images.Media.DATA + " = ?";
+            String[] selectionArgs = new String[]{file.getAbsolutePath()};
+
+            // Query for the ID of the media matching the file path
+            Uri queryUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
+            ContentResolver contentResolver = getContentResolver();
+            Cursor c = contentResolver.query(queryUri, projection, selection, selectionArgs, null);
+            if (c.moveToFirst()) {
+                // We found the ID. Deleting the item via the content provider will also remove the file
+                long id = c.getLong(c.getColumnIndexOrThrow(MediaStore.Images.Media._ID));
+                Uri deleteUri = ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id);
+                deleted = contentResolver.delete(deleteUri, null, null);
+
+            } else {
+                // File not found in media store DB
+                deleted = -1;
+            }
+            c.close();
+
+            Log.v("hapusgambar","deleted: " + deleted);
+        }
+
+        return deleted;
     }
 
 

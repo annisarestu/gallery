@@ -18,7 +18,7 @@ public class ImageDetail {
     private Long dateModified;
 
     private Long size;
-
+    
     public ImageDetail(Bitmap bitmap) {
         this(bitmap, null, null, null, null, null, null);
     }
