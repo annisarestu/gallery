@@ -69,9 +69,12 @@ public class GalleryAdapter extends BaseAdapter {
 
         final ImageDetail image = mArrayUri.get(position);
 
+
+
         itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+//                Log.d("imagepath", image.getDataPath());
                 if (itemCheckBox.isChecked()){
                     itemCheckBox.setChecked(false);
                     selectedImages.remove(image.getUri());
@@ -82,6 +85,20 @@ public class GalleryAdapter extends BaseAdapter {
             }
         });
 
+        itemCheckBox.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (itemCheckBox.isChecked()){
+                    selectedImages.add(image.getUri());
+                } else {
+
+                    selectedImages.remove(image.getUri());
+
+                }
+            }
+        });
+
         return itemView;
     }
+
 }
